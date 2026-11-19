@@ -30,3 +30,40 @@ mod HelloStarknet {
         }
     }
 }
+
+// ── Module tree ────────────────────────────────────────────────────────────
+
+pub mod interfaces {
+    pub mod iartist;
+}
+
+pub mod Components {
+    pub mod artist;
+}
+
+// ── Cairofy contract (wraps ArtistComponent for integration use) ───────────
+
+use interfaces::iartist::IArtist;
+
+#[starknet::contract]
+pub mod CairofyArtist {
+    use Components::artist::ArtistComponent;
+
+    component!(path: ArtistComponent, storage: artist, event: ArtistEvent);
+
+    #[abi(embed_v0)]
+    impl ArtistImpl = ArtistComponent::ArtistImpl<ContractState>;
+    impl ArtistInternalImpl = ArtistComponent::InternalImpl<ContractState>;
+
+    #[storage]
+    struct Storage {
+        #[substorage(v0)]
+        artist: ArtistComponent::Storage,
+    }
+
+    #[event]
+    #[derive(Drop, starknet::Event)]
+    enum Event {
+        ArtistEvent: ArtistComponent::Event,
+    }
+}
